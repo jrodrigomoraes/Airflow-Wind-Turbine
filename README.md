@@ -84,4 +84,109 @@ The pipeline defined in `windturbine_dag.py` includes:
 
 ---
 
+## Scheduling
 
+The DAG is scheduled to run **every 3 minutes** using:
+
+```python
+schedule_interval = '*/3 * * * *
+```
+
+
+## Airflow Configuration
+
+Follow these steps to properly configure your Airflow environment:
+
+### 1. Add a Variable via the Airflow UI
+
+In the Airflow web interface:
+```
+- Go to **Admin > Variables**
+- Click **+** to create a new variable
+  - **Key**: `path_file`
+  - **Value**: the absolute path of the generated JSON file  
+    _Example_: `/opt/airflow/data/data.json`
+```
+
+---
+
+### 2. Create a FileSensor Connection
+
+In the Airflow web interface:
+```
+- Go to **Admin > Connections**
+- Click **+ Add**
+- Fill in the following:
+  - **Conn ID**: `fs_default`
+  - **Conn Type**: `File (path)`
+  - **Extra**:
+    json
+    {
+      "path": "/opt/airflow/data"
+    }
+
+```
+
+---
+
+### 3. Create a PostgreSQL Connection
+
+Still under **Admin > Connections**:
+```
+
+- Click **+ Add**
+- Fill in the following:
+  - **Conn ID**: `postgres`
+  - **Conn Type**: `Postgres`
+  - Provide the necessary credentials:
+    - **Host**
+    - **Database**
+    - **Username**
+```
+
+
+Email Setup for Alerts
+This project uses Airflow's EmailOperator. To make it work, you must configure the SMTP settings in your docker-compose.yaml or airflow.cfg.
+
+Example: Using Gmail SMTP
+In your docker-compose.yaml, under both airflow-webserver and airflow-scheduler services, add:
+```
+AIRFLOW__EMAIL__EMAIL_BACKEND: 'airflow.utils.email.send_email_smtp'
+AIRFLOW__SMTP__SMTP_HOST: 'smtp.gmail.com'
+AIRFLOW__SMTP__SMTP_PORT: 587
+AIRFLOW__SMTP__SMTP_USER: 'your_email@gmail.com'
+AIRFLOW__SMTP__SMTP_PASSWORD: 'your_app_password'
+AIRFLOW__SMTP__SMTP_MAIL_FROM: 'your_email@gmail.com'
+
+```
+
+ If you're using Gmail, you must enable two-factor authentication and create an App Password to use here.
+
+---
+
+### Expected Result
+ Expected Result
+- The DAG runs every 3 minutes.
+
+- It detects the new JSON file.
+
+- Extracts and evaluates the sensor data.
+
+- Sends an alert or informational email based on temperature.
+
+- Stores all sensor data in the PostgreSQL database.
+
+**Is this a real simulation of a production pipeline?**  
+Yes. This is a practical and realistic simulation of a scheduled data pipeline. It includes real-world components like:
+
+- File monitoring
+
+- Data extraction and branching logic
+
+- Parallel task execution
+
+- Database storage
+
+- Email alerts
+
+- Ideal for practicing ETL development, data engineering, and workflow automation using Airflow.
